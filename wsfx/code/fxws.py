@@ -10,6 +10,7 @@ from wsfx.util.wsfun import getZKDL
 from wsfx.util.wsfun import getQWChildContent
 from wsfx.code.buildword2vector import load_models
 from wsfx.util.excelop import createx
+import random
 
 
 # 首先对文书进行停用词过滤
@@ -99,7 +100,8 @@ def distance(wsStrkey,ftnrArra,nrkeysdict,wsStr,model):
 #将该文书事实和结论与法条进行映射
 def traversews(wspath, model):
     # 加入data
-    outputdata = []
+    outputdata_ss = []
+    outputdata_jl = []
 
     ftmcls, ftnrls = getFTList(wspath)
     print('wsft..', ftmcls)
@@ -120,7 +122,8 @@ def traversews(wspath, model):
     # 遍历法条
     for ftnr in ftnrls:
         # 加入法条data
-        ftdata = []
+        ftdata_ss = []
+        ftdata_jl = []
 
         print('ftnr', ftnr)
         ftnrArra = cutcontent(ftnr)
@@ -133,48 +136,69 @@ def traversews(wspath, model):
             nrkeysdict[nr] = [keys, weights]
 
         #   对于每个事实句子都把法条sp遍历比较一遍
-        # for i in range(len(wsStrkeys)):
-        #     wsStrkey = wsStrkeys[i]
-        #     wsStr = wsStrls[i]
-        #     smaxsum = distance(wsStrkey, ftnrArra, nrkeysdict, wsStr, model)
-        #     ftdata.append(smaxsum)
-        #     print('ws nr',wsStr)
-        #     print('ws keys',wsStrkey)
-        #     print('ws ft max distance',smaxsum)
+        for i in range(len(wsStrkeys)):
+            wsStrkey = wsStrkeys[i]
+            wsStr = wsStrls[i]
+            smaxsum = distance(wsStrkey, ftnrArra, nrkeysdict, wsStr, model)
+            if smaxsum > 0.5:
+               ftdata_ss.append(wsStr)
+            # print('ws nr',wsStr)
+            # print('ws keys',wsStrkey)
+            # print('ws ft max distance',smaxsum)
 
         #对于每个结论句子都把法条sp遍历比较一遍
         for i in range(len(jlStrkeys)):
             jlStrkey = jlStrkeys[i]
             jlStr = jlStrls[i]
             smaxsum = distance(jlStrkey, ftnrArra, nrkeysdict, jlStr, model)
-            ftdata.append(smaxsum)
-            if smaxsum > 0.7:
-                print('jl nr', jlStr)
-                # print('jl keys', jlStrkey)
-                print('jl ft max distance', smaxsum)
+            if smaxsum > 0.5:
+               ftdata_jl.append(smaxsum)
+            # if smaxsum > 0.7:
+            #     print('jl nr', jlStr)
+            #     # print('jl keys', jlStrkey)
+            #     print('jl ft max distance', smaxsum)
 
-        outputdata.append(ftdata)
+        outputdata_ss.append(ftdata_ss)
+        outputdata_jl.append(ftdata_jl)
+
+    #输出到法条与事实的映射list，以及法条到结论映射list
+    return outputdata_ss,outputdata_jl
+
+
+
     # 反转输出到excel中
-    # outputArra = numpy.array(outputdata).T
+    # outputArra_ss = numpy.array(outputdata_ss).T
+    # outputArra_jl = numpy.array(outputdata_jl).T
     # wspathsp = wspath.split('/')
     # wsname = wspathsp[len(wspathsp) - 1]
-    # createx(wsname, wsStrls, ftnrls, outputArra)
+    # createx(wsname, jlStrls, ftnrls, outputArra_jl,'../data/testwsoutput_ft2jl')
+    # createx(wsname, wsStrls, ftnrls, outputArra_ss, '../data/testwsoutput_ss2ft')
 
+
+#输入文书路径和word2vec模型
+# 输出事实到法条的映射关系以及法条到结论的映射关系
 
 def wsfxMain(wsdictpath, word2vecmodelpath):
-    starttime = datetime.datetime.now()
-    dir = os.listdir(wsdictpath)
+    # starttime = datetime.datetime.now()
+    # dir = os.listdir(wsdictpath)
     word2vecmodel = load_models(word2vecmodelpath)
-    for i in range(2):
-        wsname = dir[i]
-        wspath = wsdictpath + '/' + wsname
-        traversews(wspath, word2vecmodel)
-    endtime = datetime.datetime.now()
-    print((endtime - starttime).seconds)
+    #生成500个随机数：
+    # resultList = random.sample(range(0, 40000), 500);
+    # for i in resultList:
+    #     wsname = dir[i]
+    #     wspath = wsdictpath + '/' + wsname
+    #     traversews(wspath, word2vecmodel)
+    # endtime = datetime.datetime.now()
+    # print((endtime - starttime).seconds)
+    return traversews(wsdictpath, word2vecmodel)
 
 
-# wsdictpath = '/users/wenny/nju/task/法条文书分析/2014filled/2014'
-wsdictpath = '../data/testws'
+
+
+
+
+wsdictpath = '/users/wenny/nju/task/法条文书分析/2014filled/2014'
+# wsdictpath = '../data/testws'
 word2vecmodelpath = '../data/2014model.model'
 wsfxMain(wsdictpath, word2vecmodelpath)
 # traversews('../data/testws/3562.xml', '../data/2014model.model')
