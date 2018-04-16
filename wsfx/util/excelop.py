@@ -19,4 +19,4 @@ def createx(wsname, rows, colums, data):
     for i in range(len(data)):
         for j in range(len(data[i])):
             ws.write(i+1,j+1,data[i][j])
-    wb.save('../data/testwsoutput/'+wsname+'.xls');
+    wb.save('../data/testwsoutput/'+wsname+'201804016.xls');

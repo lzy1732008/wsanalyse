@@ -3,9 +3,9 @@ import os
 import jieba.posseg as pos
 import gensim
 from gensim.models import word2vec
-from util.wsfun import getQW
-from util.wsfun import getFTList
-from util.fileop import getlines
+from wsfx.util.wsfun import getQW
+from wsfx.util.wsfun import getFTList
+from wsfx.util.fileop import getlines
 
 
 def buildmodel(wspath,corpuspath,modelpath,spwordpath):

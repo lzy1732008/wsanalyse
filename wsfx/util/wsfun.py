@@ -21,7 +21,7 @@ def getRDSS(path):
                                         if zjfzchild.tag == 'RDSS':
                                             content = zjfzchild.attrib['value']
     return content
-
+#指控段落
 def getZKDL(path):
     content = ''
     qw = getQW(path)
@@ -32,6 +32,7 @@ def getZKDL(path):
                     content = ajjbqkchild.attrib['value']
     return content
 
+#从新填充了法条内容的文书里提取法条列表
 def getFTList(path):
     ftnamelist = []
     ftnrlist = []
@@ -53,6 +54,16 @@ def getFTList(path):
                             ftnrlist.append(flnr)
     return ftnamelist,ftnrlist
 
+#文书QW下面的节点内容获取,如文首、诉讼情况、案件基本情况、裁判分析过程、判决结果这几个的value
+
+def getQWChildContent(path,childname):
+    content = ''
+    qw = getQW(path)
+    for qwchild in qw:
+        if qwchild.tag == childname:
+            content += qwchild.attrib['value']
+
+    return content
 
 
 
