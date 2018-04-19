@@ -42,16 +42,17 @@ def getFTList(path):
             for yyflfzchild in qwchild:
                 if yyflfzchild.tag == 'FLNRFZ':
                     for flnrfzchild in yyflfzchild:
-                        flag= 0
+                        flag = 0
                         if flnrfzchild.tag == 'FLMC':
                             flmc = flnrfzchild.attrib['value']
                             flag += 1
                         if flnrfzchild.tag == 'FLNR':
                             flnr = flnrfzchild.attrib['value']
                             flag += 2
-                        if flag==2 and flmc and flnr and flnr !='NOT FOUND':
+                        if flag == 2 and flmc and flnr and flnr != 'NOT FOUND':
                             ftnamelist.append(flmc)
                             ftnrlist.append(flnr)
+
     return ftnamelist,ftnrlist
 
 #文书QW下面的节点内容获取,如文首、诉讼情况、案件基本情况、裁判分析过程、判决结果这几个的value

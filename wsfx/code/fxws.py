@@ -10,7 +10,12 @@ from wsfx.util.wsfun import getZKDL
 from wsfx.util.wsfun import getQWChildContent
 from wsfx.code.buildword2vector import load_models
 from wsfx.util.excelop import createx
+from wsfx.util.fileop import writejson
+from wsfx.util.contentop import cutcontent
+from wsfx.util.calculate import calculatews
+from wsfx.util.fileop import getlines
 import random
+import numpy
 
 
 # 首先对文书进行停用词过滤
@@ -22,14 +27,13 @@ import random
 # 4、文书内容关键词个数为math.ceil(len/5)
 # 5、寻找法条sp中相似度最高的相似值*权重
 
-def cutcontent(content):
-    return list(filter(lambda x: x.strip() != '', re.split('；|。', content)))
 
-#获取事实内容
+# 获取事实内容
 def getSSMatchObject(wspath):
     return getRDSS(wspath) + getZKDL(wspath)
 
-#获取结论内容
+
+# 获取结论内容
 def getJLMatchObject(wspath):
     return getQWChildContent(wspath, 'CPFXGC') + getQWChildContent(wspath, 'PJJG')
 
@@ -59,47 +63,50 @@ def getnormalizeweigth(kw, flag):
         return keys, weights
     return keys
 
-#wsStrkey：一个文书句子的关键词列表
+
+# wsStrkey：一个文书句子的关键词列表
 # ftnrArra：文书句子列表
 # nrkeysdict：一个法条再进行切分后，每个子句子对应的关键词及其权重的词典，形式为：{'ftnrsp',[keys, weights]}
 # wsStr:一个文书句子
 # model：word2vec模型
-#返回该文书句子与该法条的匹配度
-def distance(wsStrkey,ftnrArra,nrkeysdict,wsStr,model):
-        smaxsum = -100
-        # print('Str', wsStr)
-        for nr in ftnrArra:
-            sum = 0  # 法条sp级别的和
-            nrdict = nrkeysdict[nr]
-            keys = nrdict[0]
-            weights = nrdict[1]
+# 返回该文书句子与该法条的匹配度
+def distance(wsStrkey, ftnrArra, nrkeysdict, wsStr, model):
+    smaxsum = -100
+    # print('Str', wsStr)
+    for nr in ftnrArra:
+        sum = 0  # 法条sp级别的和
+        nrdict = nrkeysdict[nr]
+        keys = nrdict[0]
+        weights = nrdict[1]
 
-            for j in range(len(keys)):
-                maxsim = -1  # 对于当前关键词到文书关键词进行匹配
-                ftk = keys[j]
-                ftw = weights[j]
-                for wsk in wsStrkey:
-                    try:
-                        sim = model.n_similarity(ftk, wsk)
-                        # print(ftk,wsk,sim,ftw)
-                    except:
-                        sim = -1
-                    if sim > maxsim:
-                        maxsim = sim
-                    else:
-                        pass
-                sum += maxsim * ftw
-            # print('ft nr array:', nr)
-            # print('ft nr keys:',keys)
-            # print('sum', sum)
+        for j in range(len(keys)):
+            maxsim = -1  # 对于当前关键词到文书关键词进行匹配
+            ftk = keys[j]
+            ftw = weights[j]
+            for wsk in wsStrkey:
+                try:
+                    sim = model.n_similarity(ftk, wsk)
+                    # print(ftk,wsk,sim,ftw)
+                except:
+                    sim = -1
+                if sim > maxsim:
+                    maxsim = sim
+                else:
+                    pass
+            sum += maxsim * ftw
+        # print('ft nr array:', nr)
+        # print('ft nr keys:',keys)
+        # print('sum', sum)
 
-            if sum > smaxsum:  # 针对该句子，是否目前法条sp中最大的sum
-                smaxsum = sum
-        return smaxsum
+        if sum > smaxsum:  # 针对该句子，是否目前法条sp中最大的sum
+            smaxsum = sum
+    return smaxsum
 
-#将该文书事实和结论与法条进行映射
+
+# 将该文书事实和结论与法条进行映射
 def traversews(wspath, model):
     # 加入data
+    # outputdata_dict = {}
     outputdata_ss = []
     outputdata_jl = []
 
@@ -112,7 +119,7 @@ def traversews(wspath, model):
         wsStrkeys.append(getnormalizeweigth(wsStr, False))  # h获取文书关键词，[[]]
     print('set ws keys length....', len(wsStrkeys))
 
-    #预先将结论所有句子的关键词提取好
+    # 预先将结论所有句子的关键词提取好
     jlStrkeys = []
     jlStrls = cutcontent(getJLMatchObject(wspath))
     for jlStr in jlStrls:
@@ -120,11 +127,13 @@ def traversews(wspath, model):
     print('set jl keys length....', len(jlStrkeys))
 
     # 遍历法条
-    for ftnr in ftnrls:
+    for i in range(len(ftnrls)):
         # 加入法条data
         ftdata_ss = []
         ftdata_jl = []
 
+        ftnr = ftnrls[i]
+        ftmc = ftmcls[i]
         print('ftnr', ftnr)
         ftnrArra = cutcontent(ftnr)
         print('ftnrArra lenght..', len(ftnrArra))
@@ -140,65 +149,113 @@ def traversews(wspath, model):
             wsStrkey = wsStrkeys[i]
             wsStr = wsStrls[i]
             smaxsum = distance(wsStrkey, ftnrArra, nrkeysdict, wsStr, model)
-            if smaxsum > 0.5:
-               ftdata_ss.append(wsStr)
+            # if smaxsum > 0.25:
+            ftdata_ss.append(smaxsum)
             # print('ws nr',wsStr)
             # print('ws keys',wsStrkey)
             # print('ws ft max distance',smaxsum)
 
-        #对于每个结论句子都把法条sp遍历比较一遍
+        # 对于每个结论句子都把法条sp遍历比较一遍
         for i in range(len(jlStrkeys)):
             jlStrkey = jlStrkeys[i]
             jlStr = jlStrls[i]
             smaxsum = distance(jlStrkey, ftnrArra, nrkeysdict, jlStr, model)
-            if smaxsum > 0.5:
-               ftdata_jl.append(smaxsum)
+            # if smaxsum > 0.5:
+            ftdata_jl.append(smaxsum)  # error1
             # if smaxsum > 0.7:
-            #     print('jl nr', jlStr)
-            #     # print('jl keys', jlStrkey)
-            #     print('jl ft max distance', smaxsum)
-
+            print('jl nr', jlStr)
+            print('jl keys', jlStrkey)
+            print('jl ft max distance', smaxsum)
+        # outputdata_dict[ftmc] = [ftdata_ss,ftdata_jl]
         outputdata_ss.append(ftdata_ss)
         outputdata_jl.append(ftdata_jl)
-
-    #输出到法条与事实的映射list，以及法条到结论映射list
-    return outputdata_ss,outputdata_jl
-
-
+    # 输出到法条与事实的映射list，以及法条到结论映射list
+    return outputdata_ss, outputdata_jl
 
     # 反转输出到excel中
     # outputArra_ss = numpy.array(outputdata_ss).T
     # outputArra_jl = numpy.array(outputdata_jl).T
     # wspathsp = wspath.split('/')
     # wsname = wspathsp[len(wspathsp) - 1]
-    # createx(wsname, jlStrls, ftnrls, outputArra_jl,'../data/testwsoutput_ft2jl')
-    # createx(wsname, wsStrls, ftnrls, outputArra_ss, '../data/testwsoutput_ss2ft')
+    # createx(wsname, jlStrls, ftnrls, outputArra_jl,'../data/testwsoutput_ft2jl_2')
+    # createx(wsname, wsStrls, ftnrls, outputArra_ss, '../data/testwsoutput_ss2ft_2')
 
 
-#输入文书路径和word2vec模型
+# 输入文书路径和word2vec模型
 # 输出事实到法条的映射关系以及法条到结论的映射关系
 
-def wsfxMain(wsdictpath, word2vecmodelpath):
+def wsfx(wsdictpath, word2vecmodelpath, datapath):
     # starttime = datetime.datetime.now()
-    # dir = os.listdir(wsdictpath)
+    # dir = os.listdir(wsdictpath)#随机获取文书所用
+
     word2vecmodel = load_models(word2vecmodelpath)
-    #生成500个随机数：
-    # resultList = random.sample(range(0, 40000), 500);
+    # 生成500个随机数： #随机获取文书所用
+    # resultList = random.sample(range(0, 40000), 20);
     # for i in resultList:
     #     wsname = dir[i]
     #     wspath = wsdictpath + '/' + wsname
     #     traversews(wspath, word2vecmodel)
     # endtime = datetime.datetime.now()
     # print((endtime - starttime).seconds)
-    return traversews(wsdictpath, word2vecmodel)
+
+    outputdata_ss, outputdata_jl = traversews(wsdictpath, word2vecmodel)
+    # 对数据进行处理，并计算准确率和召回率
+    print('utputdata_jl',outputdata_jl)
+    output_ss = numpy.reshape(outputdata_ss, (1, len(outputdata_ss) * len(outputdata_ss[0])))[0]
+    output_jl = numpy.reshape(outputdata_jl, (1, len(outputdata_jl) * len(outputdata_jl[0])))[0]
+
+    truedata = []
+    datapath = datapath + '/' + wsdictpath.split('/')[-1].split('.xml')[0] + '.txt'
+    lines = getlines(datapath)
+    for line in lines:
+        truedata.append(int(line.split('!@#')[-1]))
+    print('truedata', truedata)
+    print('outputjl', output_jl)
+    return calculatews(output_jl, truedata, flag=2)
 
 
+def wsfxMain(wsdictpath, word2vecmodelpath, datapath):
+    f = open('../data/result/jl_037.txt','w',encoding='utf-8')
+    dir = os.listdir(wsdictpath)
+    precision_sum = 0
+    recall_sum = 0
+    f_value = 0
+    for i in range(len(dir)):
+        ws = dir[i]
+        if ws.endswith('.xml'):
+            print(ws)
+            wspath = wsdictpath + '/' + ws
+            precision_i, recall_i = wsfx(wspath, word2vecmodelpath, datapath)
+            precision_sum += precision_i
+            recall_sum += recall_i
+            if precision_i+recall_i>0:
+               f_i = precision_i*recall_i*2/(precision_i+recall_i)
+            else:
+                f_i = 0
+            f_value += f_i
+            print('precision_i:', precision_i)
+            print('recall_i', recall_i)
+            print('f',f)
+            f.write(str(precision_i)+',')
+            f.write(str(recall_i)+',')
+            f.write(str(f_i)+'\n')
+    print('calculate ave:')
+    print(precision_sum / len(dir), recall_sum / len(dir))
+    f.write('total:')
+    f.write(str(precision_sum / len(dir))+',')
+    f.write(str(recall_sum / len(dir))+',')
+    f.write(str(f_value/len(dir)))
+    f.close()
+    # print(outputdata_dict)
 
 
+wsdictpath = '../data/testws'
+datapath = '../data/testdata_jl'
+
+# wsdictpath = '/users/wenny/nju/task/法条文书分析/2014filled/2014'
+# # wsdictpath = '../data/testws'
 
 
-wsdictpath = '/users/wenny/nju/task/法条文书分析/2014filled/2014'
-# wsdictpath = '../data/testws'
 word2vecmodelpath = '../data/2014model.model'
-wsfxMain(wsdictpath, word2vecmodelpath)
+wsfxMain(wsdictpath, word2vecmodelpath, datapath)
 # traversews('../data/testws/3562.xml', '../data/2014model.model')
