@@ -17,7 +17,7 @@ def calculatews(output,truedata, flag ):
 
     if flag == 2:
         for d1, d2 in zip1:
-            if d1 > 0.37:
+            if d1 > 0.45:
                 if d2 == 1:
                     predict_true+= 1
                 predict_positive += 1
