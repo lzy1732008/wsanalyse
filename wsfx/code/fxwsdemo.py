@@ -181,48 +181,8 @@ def traversews(wspath, model):
     # createx(wsname, wsStrls, ftnrls, outputArra_ss, '../data/testwsoutput_ss2ft_2')
 
 
-# 输入文书路径和word2vec模型
-# 输出事实到法条的映射关系以及法条到结论的映射关系
 
-def wsfx(wsdictpath, word2vecmodelpath, datapath):
-    # starttime = datetime.datetime.now()
-    # dir = os.listdir(wsdictpath)#随机获取文书所用
-
-    word2vecmodel = load_models(word2vecmodelpath)
-    # 生成500个随机数： #随机获取文书所用
-    # resultList = random.sample(range(0, 40000), 20);
-    # for i in resultList:
-    #     wsname = dir[i]
-    #     wspath = wsdictpath + '/' + wsname
-    #     traversews(wspath, word2vecmodel)
-    # endtime = datetime.datetime.now()
-    # print((endtime - starttime).seconds)
-
-    outputdata_ss, outputdata_jl = traversews(wsdictpath, word2vecmodel)
-    # 对数据进行处理，并计算准确率和召回率
-    print('utputdata_jl',outputdata_jl)
-    output_ss = numpy.reshape(outputdata_ss, (1, len(outputdata_ss) * len(outputdata_ss[0])))[0]
-    output_jl = numpy.reshape(outputdata_jl, (1, len(outputdata_jl) * len(outputdata_jl[0])))[0]
-
-    truedata = []
-    datapath = datapath + '/' + wsdictpath.split('/')[-1].split('.xml')[0] + '.txt'
-    lines = getlines(datapath)
-    for line in lines:
-        truedata.append(int(line.split('!@#')[-1]))
-    print('truedata', truedata)
-    print('outputjl', output_jl)
-    return calculatews(output_jl, truedata, flag=2)
-
-
-
-
-
-# wsdictpath = '../data/testws'
-# datapath = '../data/testdata_jl'
-
-# wsdictpath = '/users/wenny/nju/task/法条文书分析/2014filled/2014'
-# # wsdictpath = '../data/testws'
-
+#调用该方法即可，返回的是两个数组：outputdata_ss, outputdata_jl，其中每个数组的行是法条，列是事实
 def wsfxMain(wspath):
     word2vecmodelpath = '../data/2014model.model'
     # wsfxMain(wsdictpath, word2vecmodelpath, datapath)
