@@ -1,0 +1,40 @@
+法条，事实平均长度
+29.429984225215385 9.697306152166
+
+
+cnn:
+Precision, Recall and F1-Score...
+             precision    recall  f1-score   support
+
+          0       0.77      0.89      0.82      1054
+          1       0.79      0.61      0.69       729
+
+avg / total       0.78      0.78      0.77      1783
+
+Confusion Matrix...
+[[939 115]
+ [286 443]]
+Time usage: 0:00:03
+
+
+
+lstm+att:
+Test Loss:   0.56, Test Acc:  75.43%
+Precision, Recall and F1-Score...
+             precision    recall  f1-score   support
+
+          0       0.76      0.86      0.81      1054
+          1       0.75      0.60      0.67       729
+
+avg / total       0.75      0.75      0.75      1783
+
+Confusion Matrix...
+[[909 145]
+ [293 436]]
+Time usage: 0:00:08
+
+
+
+
+
+

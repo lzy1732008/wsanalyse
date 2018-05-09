@@ -86,7 +86,7 @@ def distance(wsStrkey, ftnrArra, nrkeysdict, wsStr, model):
             for wsk in wsStrkey:
                 try:
                     sim = model.n_similarity(ftk, wsk)
-                    # print(ftk,wsk,sim,ftw)
+                    print(ftk,wsk,sim,ftw)
                 except:
                     sim = -1
                 if sim > maxsim:
@@ -141,8 +141,10 @@ def traversews(wspath, model):
         # 优化，将nr对应的keys先算好，存进dict中
         nrkeysdict = {}
         for nr in ftnrArra:
+
             keys, weights = getnormalizeweigth(nr, True)
             nrkeysdict[nr] = [keys, weights]
+            print(keys, weights)
 
         #   对于每个事实句子都把法条sp遍历比较一遍
         for i in range(len(wsStrkeys)):
@@ -153,9 +155,9 @@ def traversews(wspath, model):
                ftdata_ss.append(1)
             else:
                 ftdata_ss.append(0)
-            # print('ws nr',wsStr)
-            # print('ws keys',wsStrkey)
-            # print('ws ft max distance',smaxsum)
+            print('ws nr',wsStr)
+            print('ws keys',wsStrkey)
+            print('ws ft max distance',smaxsum)
 
         # 对于每个结论句子都把法条sp遍历比较一遍
         for i in range(len(jlStrkeys)):
@@ -180,8 +182,6 @@ def traversews(wspath, model):
     # createx(wsname, jlStrls, ftnrls, outputArra_jl,'../data/testwsoutput_ft2jl_2')
     # createx(wsname, wsStrls, ftnrls, outputArra_ss, '../data/testwsoutput_ss2ft_2')
 
-
-
 #调用该方法即可，返回的是两个数组：outputdata_ss, outputdata_jl，其中每个数组的行是法条，列是事实
 def wsfxMain(wspath):
     word2vecmodelpath = '../data/2014model.model'
@@ -189,5 +189,5 @@ def wsfxMain(wspath):
     word2vecmodel = load_models(word2vecmodelpath)
     print(traversews(wspath, word2vecmodel))
 
-wsfxMain('../data/testws/90898.xml')
+wsfxMain('../data/testws/402466.xml')
 

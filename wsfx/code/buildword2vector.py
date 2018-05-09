@@ -58,6 +58,18 @@ if __name__=='__main__':
     # stopwordspath = '../data/stopwords.txt'
     # buildmodel(ws_path,corpus_path,model_path,stopwordspath)
     model = load_models(model_path)
-    similary_words = model.most_similar(u'死亡', topn=30)
-    print(similary_words)
+    # similary_words = model.most_similar(u'死亡', topn=30)
+    # print(similary_words)
+    ls = model['死亡']
+    s = 0
+    for n in ls:
+        s +=n
+    print(s/len(ls))
+
+    ls = model['受伤']
+    s = 0
+    for n in ls:
+        s += n
+    print(s / len(ls))
+
 

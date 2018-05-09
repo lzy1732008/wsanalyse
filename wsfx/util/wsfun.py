@@ -68,3 +68,26 @@ def getQWChildContent(path,childname):
 
 
 
+def getFTfromQW(path):
+    ftls = []
+    qw = getQW(path)
+    for qwchild in qw:
+        if qwchild.tag == 'CPFXGC':
+            for cpfxgcchild in qwchild:
+                if cpfxgcchild.tag == 'CUS_FLFT_FZ_RY':
+                    for fz in cpfxgcchild:
+                        if fz.tag == 'CUS_FLFT_RY':
+                            ftls.append(fz.attrib['value'])
+    return ftls
+
+
+
+
+# 获取事实内容
+def getSSMatchObject(wspath):
+    return getRDSS(wspath) + getZKDL(wspath)
+
+
+# 获取结论内容
+def getJLMatchObject(wspath):
+    return getQWChildContent(wspath, 'CPFXGC') + getQWChildContent(wspath, 'PJJG')
