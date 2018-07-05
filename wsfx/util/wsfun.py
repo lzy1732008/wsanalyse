@@ -1,5 +1,5 @@
 import lxml.etree
-
+import os
 def getQW(path):
     tree = lxml.etree.parse(path)
     root = tree.getroot()
@@ -91,3 +91,57 @@ def getSSMatchObject(wspath):
 # 获取结论内容
 def getJLMatchObject(wspath):
     return getQWChildContent(wspath, 'CPFXGC') + getQWChildContent(wspath, 'PJJG')
+
+#获取交通肇事罪的证据记录列表
+def getZJ(wspath):
+    zjlist = []
+    qw = getQW(wspath)
+    for qwchild in qw:
+        if qwchild.tag == 'AJJBQK':
+            for ajjbqkchild in qwchild:
+                if ajjbqkchild.tag == 'BSSLD':
+                    for bssldchid in ajjbqkchild:
+                        if bssldchid.tag == 'ZJXX':
+                            for zjxxchild in bssldchid:
+                                if zjxxchild.tag == 'ZJFZ':
+                                    for zjfzchild in zjxxchild:
+                                        if zjfzchild.tag == 'ZJJL':
+                                            zjlist.append(zjfzchild.attrib['value'])
+    return zjlist
+
+
+#获取xml任意路径的value值
+def getnodecontent(wspath,xmlpath):
+    pathlist = xmlpath.split('/')
+    print(pathlist)
+    tree = lxml.etree.parse(wspath)
+    root = tree.getroot()
+    point = root
+    index = 0
+    while(index < len(pathlist)):
+        for child in point:
+            if child.tag == pathlist[index]:
+                point = child
+                index += 1
+                break
+    valuelist = []
+    parent = point.getparent()
+    for p in parent:
+        if p.tag == pathlist[-1]:
+            valuelist.append(p.attrib['value'])
+
+# getnodecontent('../data/testws5b/264751.xml','QW/AJJBQK/BSSLD/ZJXX/ZJFZ/ZJJL')
+
+
+# dict = '/users/wenny/nju/task/法条文书分析/2014filled/2014'
+# dir = os.listdir('/users/wenny/nju/task/法条文书分析/2014filled/2014')
+# i = 0
+# for ws in dir:
+#     # print(i)
+#     # i += 1
+#     wspath = dict+'/'+ws
+#     ftnamels,ftnrls = ftls = getFTList(wspath)
+#     for ft in ftnamels:
+#         if ft.count('药品管理')> 0:
+#             print(ft)
+#             print(wspath)

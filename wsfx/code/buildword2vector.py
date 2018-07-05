@@ -10,10 +10,10 @@ from wsfx.util.fileop import getlines
 
 def buildmodel(wspath,corpuspath,modelpath,spwordpath):
     print('build model......')
-    setCor(wspath,corpuspath,spwordpath)
+    # setCor(wspath,corpuspath,spwordpath)
     print('start.....')
     sentence = word2vec.LineSentence(corpuspath)
-    model = word2vec.Word2Vec(sentence,min_count=5,size = 200)
+    model = word2vec.Word2Vec(sentence,min_count=5,size = 128)
     print('saveing.....')
     model.save(modelpath)
     print('built......')
@@ -51,25 +51,32 @@ def setCor(dicpath,corpuspath,spwordpath):
 def load_models(model_path):
     return gensim.models.Word2Vec.load(model_path)
 
+def vector(v,model):
+    try:
+        return model[v]
+    except:
+        return [0]*64
+
 if __name__=='__main__':
-    # ws_path='D:\\nju\\study\\task\\文书逆向分析\\法条内容填充2014\\2014'
-    # corpus_path = '../data/2014corpus.txt'
-    model_path='../data/2014model.model'
-    # stopwordspath = '../data/stopwords.txt'
-    # buildmodel(ws_path,corpus_path,model_path,stopwordspath)
-    model = load_models(model_path)
+    ws_path='D:\\nju\\study\\task\\法条文书分析\\法条内容填充2014\\2014'
+    corpus_path = '../data/2014corpus.txt'
+    model_path='../data/2014model_size128.model'
+    stopwordspath = '../data/stopwords.txt'
+    buildmodel(ws_path,corpus_path,model_path,stopwordspath)
+    # model = load_models(model_path)
     # similary_words = model.most_similar(u'死亡', topn=30)
     # print(similary_words)
-    ls = model['死亡']
-    s = 0
-    for n in ls:
-        s +=n
-    print(s/len(ls))
-
-    ls = model['受伤']
-    s = 0
-    for n in ls:
-        s += n
-    print(s / len(ls))
+    # ls = vector('AKG',model)
+    # print(ls)
+    # s = 0
+    # for n in ls:
+    #     s +=n
+    # print(s/len(ls))
+    #
+    # ls = model['受伤']
+    # s = 0
+    # for n in ls:
+    #     s += n
+    # print(s / len(ls))
 
 

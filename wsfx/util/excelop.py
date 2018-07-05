@@ -41,7 +41,7 @@ def createx(wsname, rows, colums, data ,dir):
     for i in range(len(data)):
         for j in range(len(data[i])):
             ws.write(i+1,j+1,data[i][j])
-    wb.save(dir+'/'+wsname+'_ft2jl.xls');
+    wb.save(dir+'/'+wsname+'_20180705.xls');
 
 
 
@@ -55,6 +55,15 @@ def getcolls(excelpath):
         rowls.append(cell)
     return rowls
 
+def getrow2ls(excelpath):
+    excelfile = xlrd.open_workbook(excelpath)
+    sheet = excelfile.sheet_by_index(0)
+    colls = []
+    for i in range(1,sheet.nrows):
+        # print(sheet.col_values(i))
+        cell = sheet.cell_value(i,1)
+        colls.append(cell)
+    return colls
 
 def getrowls(excelpath):
     excelfile = xlrd.open_workbook(excelpath)
@@ -65,6 +74,7 @@ def getrowls(excelpath):
         cell = sheet.cell_value(i,0)
         colls.append(cell)
     return colls
+
 
 
 def getexceldata(excelpath):
@@ -101,5 +111,3 @@ def alterexcel(excelapath,cols,rows,datas):
         sheet.write(int(row.strip())+1,int(col.strip())+1,data)
     wb.save(excelapath)
 
-# getexceldata('../data/1w篇_事实到法条/000_273841.xml_ft2jl.xls')
-# createx('ffff',['中华人民共和国刑法(2015)第一百三十三条:违反交通运输管理法规，因而发生重大事故，致人重伤、死亡或者使公私财产遭受重大损失的，处三年以下有期徒刑或者拘役；交通运输肇事后逃逸或者有其他特别恶劣情节的，处三年以上七年以下有期徒刑；因逃逸致人死亡的，处七年以上有期徒刑。'],['中华人民共和国刑法(2015)第一百三十三条:违反交通运输管理法规，因而发生重大事故，致人重伤、死亡或者使公私财产遭受重大损失的，处三年以下有期徒刑或者拘役；交通运输肇事后逃逸或者有其他特别恶劣情节的，处三年以上七年以下有期徒刑；因逃逸致人死亡的，处七年以上有期徒刑。'],[],'../data')
